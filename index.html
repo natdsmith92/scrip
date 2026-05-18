@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ScripHessco — Tape Color Shade Selection</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #08080a;
+    --card: rgba(255,255,255,0.025);
+    --card-border: rgba(255,255,255,0.06);
+    --text: #fafafa;
+    --text-dim: rgba(255,255,255,0.45);
+    --text-faint: rgba(255,255,255,0.18);
+    --gold: #d4a853;
+    --gold-light: #f0c674;
+    --green: #4ade80;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection { background: rgba(212,168,83,0.3); }
+  input::placeholder { color: rgba(255,255,255,0.15); }
+
+  /* ── BRAND BAR ── */
+  .brand-bar {
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+  .brand-bar .diamond {
+    width: 8px; height: 8px; border-radius: 2px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    transform: rotate(45deg);
+  }
+  .brand-bar .name {
+    font-size: 12px; font-weight: 700; letter-spacing: 3.5px;
+    color: rgba(255,255,255,0.4); text-transform: uppercase;
+  }
+  .brand-bar .divider {
+    width: 1px; height: 14px; background: rgba(255,255,255,0.08); margin: 0 4px;
+  }
+  .brand-bar .sub {
+    font-size: 12px; font-weight: 500; letter-spacing: 1.5px;
+    color: rgba(255,255,255,0.18); text-transform: uppercase;
+  }
+
+  .container { max-width: 1000px; margin: 0 auto; padding: 40px 24px 120px; }
+
+  /* ── HERO ── */
+  .hero { text-align: center; margin-bottom: 36px; }
+  .hero .badge {
+    display: inline-block; padding: 5px 14px; border-radius: 20px;
+    background: rgba(212,168,83,0.06); border: 1px solid rgba(212,168,83,0.12);
+    margin-bottom: 18px;
+  }
+  .hero .badge span { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: var(--gold); }
+  .hero h1 {
+    font-size: clamp(1.6rem, 3.5vw, 2.4rem); font-weight: 800;
+    letter-spacing: -0.03em; margin-bottom: 12px; line-height: 1.15;
+    background: linear-gradient(180deg, #fff 30%, rgba(255,255,255,0.5) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hero p { color: rgba(255,255,255,0.4); font-size: 16px; max-width: 540px; margin: 0 auto; line-height: 1.7; }
+
+  /* ── HOW IT WORKS ── */
+  .how-it-works {
+    margin-bottom: 36px; padding: 28px; border-radius: 18px;
+    background: var(--card); border: 1px solid var(--card-border);
+  }
+  .how-it-works .label {
+    font-size: 13px; font-weight: 700; letter-spacing: 2.5px;
+    color: rgba(255,255,255,0.3); margin-bottom: 22px; text-transform: uppercase;
+  }
+  .step { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 22px; }
+  .step:last-child { margin-bottom: 0; }
+  .step-num {
+    width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+    background: rgba(212,168,83,0.1); border: 1px solid rgba(212,168,83,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; font-weight: 800; color: var(--gold);
+  }
+  .step-title { font-size: 18px; font-weight: 700; color: rgba(255,255,255,0.85); margin-bottom: 5px; }
+  .step-desc { font-size: 15px; color: var(--text-dim); line-height: 1.65; }
+
+  /* ── PROGRESS ── */
+  .progress { margin-bottom: 28px; }
+  .progress-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+  .progress-header span { font-size: 12px; font-weight: 700; letter-spacing: 2px; color: rgba(255,255,255,0.3); }
+  .progress-header .complete { letter-spacing: 1px; }
+  .progress-track { height: 4px; border-radius: 2px; background: rgba(255,255,255,0.06); overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--gold), var(--gold-light)); transition: width 0.5s ease; }
+  .progress-fill.done { background: linear-gradient(90deg, var(--green), #22d3ee); }
+
+  /* ── NAME ── */
+  .name-row {
+    display: flex; align-items: center; gap: 14px; margin-bottom: 40px;
+    padding: 16px 22px; border-radius: 14px;
+    background: rgba(255,255,255,0.02); border: 1px solid var(--card-border);
+  }
+  .name-row label {
+    font-weight: 700; color: rgba(255,255,255,0.3); font-size: 13px;
+    letter-spacing: 1.5px; white-space: nowrap;
+  }
+  .name-row input {
+    font-family: inherit; font-size: 16px; padding: 8px 0;
+    border: none; border-bottom: 1px solid rgba(255,255,255,0.08);
+    background: transparent; color: var(--text); flex: 1; outline: none;
+  }
+  .name-row input:focus { border-bottom-color: rgba(255,255,255,0.25); }
+
+  /* ── COLOR SECTION ── */
+  .color-section { margin-bottom: 36px; animation: fadeSlide 0.5s ease both; }
+  .color-section:nth-child(2) { animation-delay: 0.07s; }
+  .color-section:nth-child(3) { animation-delay: 0.14s; }
+  .color-section:nth-child(4) { animation-delay: 0.21s; }
+
+  .color-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .color-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .color-header h2 { font-size: 20px; font-weight: 800; margin: 0; }
+  .color-header .line { flex: 1; height: 1px; background: rgba(255,255,255,0.05); }
+  .color-header .status { font-size: 12px; font-weight: 600; color: var(--text-faint); letter-spacing: 1px; }
+
+  .selected-badge {
+    display: flex; align-items: center; gap: 6px; padding: 5px 14px;
+    border-radius: 20px; font-size: 12px; font-weight: 700; letter-spacing: 1px;
+  }
+  .selected-badge .check-circle {
+    width: 18px; height: 18px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .options-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+
+  .option-card {
+    border-radius: 14px; overflow: hidden; cursor: pointer; position: relative;
+    border: 2px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.015); transition: all 0.25s;
+  }
+  .option-card:hover { border-color: rgba(255,255,255,0.15); }
+  .option-card.selected { background: rgba(255,255,255,0.04); }
+
+  .option-card .check-badge {
+    position: absolute; top: 8px; left: 8px; z-index: 2;
+    width: 24px; height: 24px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    animation: popIn 0.25s ease; opacity: 0; pointer-events: none;
+  }
+  .option-card.selected .check-badge { opacity: 1; }
+
+  .option-card .zoom-btn {
+    position: absolute; top: 8px; right: 8px; z-index: 2;
+    width: 30px; height: 30px; border-radius: 50%;
+    background: rgba(0,0,0,0.5); backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.7); cursor: zoom-in; opacity: 0;
+    transition: opacity 0.2s; border: none;
+  }
+  .option-card:hover .zoom-btn { opacity: 1; }
+
+  .option-img {
+    aspect-ratio: 1; background: #ffffff;
+    display: flex; align-items: center; justify-content: center; padding: 8px;
+  }
+  .option-img img { width: 100%; height: 100%; object-fit: contain; border-radius: 4px; }
+
+  .option-img.none-cell {
+    background: transparent;
+    flex-direction: column; gap: 8px; color: rgba(255,255,255,0.2); padding: 0;
+  }
+  .option-img.none-cell span { font-size: 11px; font-weight: 700; letter-spacing: 1px; }
+
+  .option-label {
+    text-align: center; margin-top: 9px;
+    font-size: 14px; font-weight: 700; letter-spacing: 1px; color: var(--text-dim);
+  }
+  .option-card.selected + .option-label-wrap .option-label { /* handled in JS */ }
+
+  /* ── SUBMIT ── */
+  .submit-area { text-align: center; margin-top: 44px; padding: 40px 0; border-top: 1px solid rgba(255,255,255,0.04); }
+  .submit-btn {
+    font-family: inherit; font-size: 15px; font-weight: 700; letter-spacing: 2px;
+    padding: 17px 56px; border-radius: 50px; text-transform: uppercase;
+    border: none; cursor: pointer; transition: all 0.4s;
+  }
+  .submit-btn.active {
+    color: #08080a; background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    box-shadow: 0 4px 32px rgba(212,168,83,0.3);
+  }
+  .submit-btn.inactive {
+    color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.03);
+    border: 1px solid var(--card-border); cursor: not-allowed;
+  }
+  .submit-hint { margin-top: 14px; font-size: 14px; color: var(--text-faint); }
+
+  /* ── RESULTS ── */
+  .results {
+    background: var(--card); border: 1px solid var(--card-border); border-radius: 18px;
+    padding: 36px 32px; margin-top: 8px; box-shadow: 0 12px 48px rgba(0,0,0,0.25);
+    animation: fadeSlide 0.4s ease; display: none;
+  }
+  .results.show { display: block; }
+  .results h3 {
+    font-size: 16px; font-weight: 700; letter-spacing: 1px;
+    color: rgba(255,255,255,0.5); text-transform: uppercase; margin-bottom: 18px;
+  }
+  .results h3 .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px rgba(74,222,128,0.4); margin-right: 10px; vertical-align: middle; }
+  .results pre {
+    background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 14px; padding: 24px; font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 14px; line-height: 1.9; white-space: pre-wrap;
+    color: rgba(255,255,255,0.7); margin-bottom: 20px; overflow-x: auto;
+  }
+  .copy-btn {
+    font-family: inherit; font-size: 15px; font-weight: 700; letter-spacing: 1.5px;
+    padding: 14px 40px; border-radius: 50px; cursor: pointer; transition: all 0.25s;
+    text-transform: uppercase; border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.6);
+    display: inline-flex; align-items: center; gap: 10px;
+  }
+  .copy-btn.copied { background: var(--green); color: #08080a; border-color: var(--green); }
+  .results .paste-hint { text-align: center; margin-top: 16px; font-size: 15px; color: rgba(255,255,255,0.25); line-height: 1.6; }
+
+  /* ── FYI SECTION ── */
+  .fyi { margin-top: 52px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 44px; }
+  .fyi-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+  .fyi-icon {
+    width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0;
+    background: rgba(212,168,83,0.08); border: 1px solid rgba(212,168,83,0.15);
+    display: flex; align-items: center; justify-content: center; color: var(--gold);
+  }
+  .fyi-header h3 { font-size: 20px; font-weight: 800; }
+  .fyi-header .sub { font-size: 15px; color: rgba(255,255,255,0.35); margin-top: 3px; }
+
+  .fyi-callout {
+    padding: 26px 28px; background: rgba(212,168,83,0.04);
+    border: 1px solid rgba(212,168,83,0.1); border-radius: 16px; margin-bottom: 28px;
+  }
+  .fyi-callout p { font-size: 16px; color: rgba(255,255,255,0.6); line-height: 1.9; }
+  .fyi-callout strong.gold { color: var(--gold); }
+  .fyi-callout strong.bright { color: rgba(255,255,255,0.7); }
+
+  .fyi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .fyi-card {
+    padding: 26px; border-radius: 14px;
+    background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
+  }
+  .fyi-card .icon { color: rgba(255,255,255,0.25); margin-bottom: 14px; }
+  .fyi-card h4 { font-size: 17px; font-weight: 700; margin-bottom: 10px; color: rgba(255,255,255,0.8); }
+  .fyi-card p { font-size: 15px; color: rgba(255,255,255,0.42); line-height: 1.8; }
+
+  .fyi-tip {
+    margin-top: 20px; padding: 20px 24px; border-radius: 12px;
+    background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04);
+    display: flex; align-items: flex-start; gap: 14px;
+  }
+  .fyi-tip .bulb { font-size: 20px; margin-top: 1px; }
+  .fyi-tip p { font-size: 15px; color: rgba(255,255,255,0.38); line-height: 1.8; }
+  .fyi-tip strong { color: rgba(255,255,255,0.55); }
+
+  /* ── FOOTER ── */
+  .footer { margin-top: 52px; text-align: center; padding-top: 28px; border-top: 1px solid rgba(255,255,255,0.03); }
+  .footer .line1 { font-size: 10px; font-weight: 600; letter-spacing: 3px; color: rgba(255,255,255,0.12); text-transform: uppercase; }
+  .footer .line2 { font-size: 10px; color: rgba(255,255,255,0.06); margin-top: 5px; }
+
+  /* ── LIGHTBOX ── */
+  .lightbox {
+    position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.93);
+    backdrop-filter: blur(24px); display: none; align-items: center; justify-content: center;
+    cursor: zoom-out; padding: 16px; animation: lbIn 0.2s ease;
+  }
+  .lightbox.show { display: flex; }
+  .lightbox img { max-width: min(1500px, 95vw); max-height: 95vh; border-radius: 12px; box-shadow: 0 40px 120px rgba(0,0,0,0.8); background: #fff; }
+  .lightbox .close-btn {
+    position: absolute; top: 18px; right: 18px; width: 48px; height: 48px;
+    border-radius: 50%; background: rgba(255,255,255,0.1); border: none;
+    color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 22px;
+  }
+  .lightbox .hint { position: absolute; bottom: 22px; font-size: 15px; font-weight: 600; letter-spacing: 1px; color: rgba(255,255,255,0.3); }
+
+  @keyframes fadeSlide { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes lbIn { from { opacity:0; } to { opacity:1; } }
+  @keyframes popIn { from { transform:scale(0); } to { transform:scale(1); } }
+
+  @media (max-width: 700px) {
+    .options-grid { grid-template-columns: repeat(3, 1fr) !important; }
+    .fyi-grid { grid-template-columns: 1fr !important; }
+    .step { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <img id="lightbox-img" src="" alt="Enlarged view">
+  <button class="close-btn" onclick="closeLightbox()">✕</button>
+  <div class="hint">Click anywhere or press ESC to close</div>
+</div>
+
+<!-- BRAND BAR -->
+<div class="brand-bar">
+  <div class="diamond"></div>
+  <span class="name">ScripHessco</span>
+  <div class="divider"></div>
+  <span class="sub">Color Review</span>
+</div>
+
+<div class="container">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="badge"><span>INTERNAL REVIEW</span></div>
+    <h1>Kinesiology Tape — Color Shade Selection</h1>
+    <p>Review each color below and select the shade that best represents the target production color.</p>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <div class="how-it-works">
+    <div class="label">How It Works</div>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div>
+        <div class="step-title">Select Your Favorite Shade</div>
+        <div class="step-desc">Click on the shade you prefer for each color below. If none of the options look right, choose "None." You can click the magnifying glass icon on any image to enlarge it for a closer look.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div>
+        <div class="step-title">Click "Submit My Picks"</div>
+        <div class="step-desc">Once you've made a selection for all four colors, the gold Submit button at the bottom will activate. Click it.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div>
+        <div class="step-title">Copy & Paste Your Answer to Chat</div>
+        <div class="step-desc">A summary box will appear with all of your picks. Click the "Copy to Clipboard" button, then paste it into your chat message or email to send us your choices.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress">
+    <div class="progress-header">
+      <span>PROGRESS</span>
+      <span class="complete" id="progress-text">0 of 4 COMPLETE</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+    </div>
+  </div>
+
+  <!-- NAME -->
+  <div class="name-row">
+    <label>YOUR NAME</label>
+    <input type="text" id="voter-name" placeholder="Enter your name">
+  </div>
+
+  <!-- COLOR SECTIONS (built by JS) -->
+  <div id="color-sections"></div>
+
+  <!-- SUBMIT -->
+  <div class="submit-area">
+    <button class="submit-btn inactive" id="submit-btn" onclick="handleSubmit()" disabled>Submit My Picks</button>
+    <div class="submit-hint" id="submit-hint">Select a shade for each color to enable this button</div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results" id="results">
+    <h3><span class="dot"></span>Your Selections — Copy & Paste This</h3>
+    <pre id="results-text"></pre>
+    <div style="text-align:center;">
+      <button class="copy-btn" id="copy-btn" onclick="handleCopy()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy to Clipboard
+      </button>
+    </div>
+    <p class="paste-hint">Paste this into your chat message, email, or Slack to send your selections.</p>
+  </div>
+
+  <!-- FYI SECTION -->
+  <div class="fyi">
+    <div class="fyi-header">
+      <div class="fyi-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </div>
+      <div>
+        <h3>Important — About Screen Color Accuracy</h3>
+        <div class="sub">Please read before making your selections</div>
+      </div>
+    </div>
+
+    <div class="fyi-callout">
+      <p><strong class="gold">Please note:</strong> Fabric colors viewed on a screen are always approximate. The shades displayed here are digital representations and <em>will look different</em> from the actual woven textile you hold in your hands. Use this poll to indicate your <strong class="bright">relative preference</strong> between the options shown — final color approval should always be confirmed against a physical fabric swatch under controlled lighting conditions.</p>
+    </div>
+
+    <div class="fyi-grid">
+      <div class="fyi-card">
+        <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+        <h4>Display Technology Varies</h4>
+        <p>An iPhone's OLED screen renders deeper blacks and more saturated colors than a typical laptop LCD. OLED, IPS, TN, and AMOLED displays all have different color ranges, contrast levels, and white-point settings. Two people viewing this exact same page on different devices will see noticeably different shades.</p>
+      </div>
+      <div class="fyi-card">
+        <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></div>
+        <h4>Brightness & Ambient Lighting</h4>
+        <p>Your screen brightness setting and the light in your room both change how you perceive color. Warm overhead lighting adds a yellow tint, while cool fluorescent lights shift colors blue. For the best comparison, view this page in a neutrally-lit room at about 50–70% screen brightness, and avoid direct sunlight on your screen.</p>
+      </div>
+      <div class="fyi-card">
+        <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></div>
+        <h4>Fabric Is Three-Dimensional</h4>
+        <p>Woven kinesiology tape has real, physical texture — tiny thread ridges and crossings that catch light differently at every angle. A flat image on a screen collapses all of that into a single plane. When you hold the actual fabric, it will appear lighter where light hits the surface and deeper in the shadows between threads, creating a richness no screen can fully show.</p>
+      </div>
+      <div class="fyi-card">
+        <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
+        <h4>Pantone Colors & Production Dyes</h4>
+        <p>Production fabrics are dyed to specific Pantone color references under standardized D65 lighting. Your screen uses RGB light (red, green, blue mixed together), while physical fabric dyes work by absorbing light — these are fundamentally different color systems. A Pantone-matched fabric swatch viewed in a professional light booth is the only reliable way to approve the final production color.</p>
+      </div>
+    </div>
+
+    <div class="fyi-tip">
+      <span class="bulb">💡</span>
+      <p><strong>Best Practice:</strong> If possible, request a physical strike-off or drawdown sample from the mill before giving final approval. Compare the swatches under both natural daylight (D65) and retail store lighting (TL84 / F11) to make sure the color looks right in the environments where the product will actually be sold and used.</p>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="line1">Confidential — Internal Use Only</div>
+    <div class="line2">ScripHessco Color Review Tool</div>
+  </div>
+</div>
+
+<script>
+const S3 = "https://quadratec-renders.s3.us-west-2.amazonaws.com/images/";
+const COLORS = [
+  { name: "Teal", accent: "#2dd4bf", opts: ["A","B","C","D"] },
+  { name: "Beige", accent: "#d4a853", opts: ["A","B","C","D"] },
+  { name: "Blue", accent: "#3b82f6", opts: ["A","B","C","D"] },
+  { name: "Pink", accent: "#ec4899", opts: ["A","B","C","D"] },
+];
+
+const picks = {};
+
+function getImgUrl(color, opt) {
+  return S3 + color + "_Option_" + opt + ".png";
+}
+
+function buildSections() {
+  const container = document.getElementById("color-sections");
+  COLORS.forEach((c) => {
+    const allOpts = [...c.opts, "None"];
+    let html = `<div class="color-section">
+      <div class="color-header">
+        <div class="color-dot" style="background:${c.accent}; box-shadow:0 0 14px ${c.accent}80"></div>
+        <h2>${c.name}</h2>
+        <div class="line"></div>
+        <span class="status" id="status-${c.name}">SELECT ONE</span>
+      </div>
+      <div class="options-grid">`;
+
+    allOpts.forEach((opt) => {
+      const isNone = opt === "None";
+      const imgSrc = isNone ? "" : getImgUrl(c.name, opt);
+      html += `<div>
+        <div class="option-card" id="card-${c.name}-${opt}" onclick="selectOpt('${c.name}','${opt}')" data-color="${c.name}" data-opt="${opt}">
+          <div class="check-badge" style="background:${isNone ? 'rgba(255,255,255,0.25)' : c.accent}; ${!isNone ? 'box-shadow:0 2px 8px '+c.accent+'80' : ''}">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          ${!isNone ? `<button class="zoom-btn" onclick="event.stopPropagation(); openLightbox('${imgSrc}')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+          </button>` : ''}
+          <div class="option-img ${isNone ? 'none-cell' : ''}">
+            ${isNone
+              ? `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><span>NONE</span>`
+              : `<img src="${imgSrc}" alt="${c.name} Option ${opt}" loading="lazy">`
+            }
+          </div>
+        </div>
+        <div class="option-label" id="label-${c.name}-${opt}" style="color:rgba(255,255,255,0.45)">
+          ${isNone ? "None" : "Option " + opt}
+        </div>
+      </div>`;
+    });
+
+    html += `</div></div>`;
+    container.insertAdjacentHTML("beforeend", html);
+  });
+}
+
+function selectOpt(color, opt) {
+  picks[color] = opt;
+  const c = COLORS.find(x => x.name === color);
+  const allOpts = [...c.opts, "None"];
+
+  // Reset all cards in this color
+  allOpts.forEach((o) => {
+    const card = document.getElementById(`card-${color}-${o}`);
+    const label = document.getElementById(`label-${color}-${o}`);
+    card.classList.remove("selected");
+    card.style.borderColor = "rgba(255,255,255,0.06)";
+    card.style.boxShadow = "none";
+    card.style.background = "rgba(255,255,255,0.015)";
+    label.style.color = "rgba(255,255,255,0.45)";
+  });
+
+  // Highlight selected
+  const card = document.getElementById(`card-${color}-${opt}`);
+  const label = document.getElementById(`label-${color}-${opt}`);
+  card.classList.add("selected");
+  const isNone = opt === "None";
+  card.style.borderColor = isNone ? "rgba(255,255,255,0.35)" : c.accent;
+  if (!isNone) {
+    card.style.boxShadow = `0 6px 32px ${c.accent}20`;
+    card.style.background = c.accent + "08";
+  } else {
+    card.style.background = "rgba(255,255,255,0.04)";
+  }
+  label.style.color = isNone ? "rgba(255,255,255,0.5)" : c.accent;
+
+  // Update status
+  const status = document.getElementById(`status-${color}`);
+  if (isNone) {
+    status.innerHTML = `<span class="selected-badge" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);">
+      <span class="check-circle" style="background:rgba(255,255,255,0.2);width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+      <span style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.4);letter-spacing:1px;">NONE</span>
+    </span>`;
+  } else {
+    status.innerHTML = `<span class="selected-badge" style="background:${c.accent}12; border:1px solid ${c.accent}25;">
+      <span class="check-circle" style="background:${c.accent};width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+      <span style="font-size:12px;font-weight:700;color:${c.accent};letter-spacing:1px;">OPTION ${opt}</span>
+    </span>`;
+  }
+
+  updateProgress();
+  document.getElementById("results").classList.remove("show");
+}
+
+function updateProgress() {
+  const count = Object.keys(picks).length;
+  const total = COLORS.length;
+  const pct = (count / total) * 100;
+  const fill = document.getElementById("progress-fill");
+  const text = document.getElementById("progress-text");
+  const btn = document.getElementById("submit-btn");
+  const hint = document.getElementById("submit-hint");
+
+  fill.style.width = pct + "%";
+  text.textContent = count + " of " + total + " COMPLETE";
+
+  if (count === total) {
+    fill.classList.add("done");
+    text.style.color = "#4ade80";
+    btn.disabled = false;
+    btn.className = "submit-btn active";
+    hint.style.display = "none";
+  } else {
+    fill.classList.remove("done");
+    text.style.color = "rgba(255,255,255,0.3)";
+    btn.disabled = true;
+    btn.className = "submit-btn inactive";
+    hint.style.display = "block";
+  }
+}
+
+function handleSubmit() {
+  const count = Object.keys(picks).length;
+  if (count < COLORS.length) return;
+
+  const name = document.getElementById("voter-name").value.trim();
+  const ts = new Date().toLocaleString();
+  let lines = [
+    "══════════════════════════════════",
+    "  SCRIPHESSCO — TAPE SHADE POLL",
+    "══════════════════════════════════",
+  ];
+  if (name) lines.push("  Reviewer:  " + name);
+  lines.push("  Date:      " + ts, "");
+  COLORS.forEach((c) => {
+    const v = picks[c.name];
+    const display = v === "None" ? "None (no preference)" : "Option " + v;
+    lines.push("  " + c.name.padEnd(9) + "→  " + display);
+  });
+  lines.push("", "══════════════════════════════════");
+
+  document.getElementById("results-text").textContent = lines.join("\n");
+  const results = document.getElementById("results");
+  results.classList.add("show");
+  results.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+function handleCopy() {
+  const text = document.getElementById("results-text").textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById("copy-btn");
+    btn.classList.add("copied");
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Copied to Clipboard';
+    setTimeout(() => {
+      btn.classList.remove("copied");
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy to Clipboard';
+    }, 3000);
+  });
+}
+
+function openLightbox(src) {
+  document.getElementById("lightbox-img").src = src;
+  document.getElementById("lightbox").classList.add("show");
+  document.body.style.overflow = "hidden";
+}
+
+function closeLightbox() {
+  document.getElementById("lightbox").classList.remove("show");
+  document.body.style.overflow = "";
+}
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeLightbox();
+});
+
+// Build on load
+buildSections();
+</script>
+</body>
+</html>
