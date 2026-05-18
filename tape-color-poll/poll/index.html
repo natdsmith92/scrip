@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Color Shade Poll</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f2ed;
+    --card-bg: #ffffff;
+    --text: #2c2a27;
+    --text-muted: #7a756d;
+    --accent: #d4a853;
+    --accent-hover: #c19640;
+    --border: #e4dfd7;
+    --selected-ring: #d4a853;
+    --selected-bg: #fdf8ef;
+    --success-bg: #e8f5e9;
+    --success-text: #2e7d32;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 30px rgba(0,0,0,0.1);
+    --radius: 12px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 40px 20px 80px;
+  }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  header h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+  }
+
+  header p {
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    line-height: 1.6;
+    max-width: 520px;
+    margin: 0 auto;
+  }
+
+  .color-group {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 32px;
+    margin-bottom: 28px;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.2s ease;
+  }
+
+  .color-group:hover {
+    box-shadow: var(--shadow-md);
+  }
+
+  .color-group-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .color-swatch {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .color-group-header h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 1.35rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .color-group-header .status {
+    margin-left: auto;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: var(--bg);
+    padding: 4px 12px;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+  }
+
+  .color-group-header .status.selected {
+    background: var(--selected-bg);
+    color: var(--accent);
+  }
+
+  .options-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+
+  .option-card {
+    position: relative;
+    cursor: pointer;
+    border-radius: var(--radius);
+    border: 2px solid var(--border);
+    overflow: hidden;
+    transition: all 0.25s ease;
+    background: var(--bg);
+  }
+
+  .option-card:hover {
+    border-color: var(--accent);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+
+  .option-card.active {
+    border-color: var(--selected-ring);
+    box-shadow: 0 0 0 3px rgba(212, 168, 83, 0.25), var(--shadow-md);
+    background: var(--selected-bg);
+  }
+
+  .option-card input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .option-img-wrap {
+    aspect-ratio: 1;
+    overflow: hidden;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+  }
+
+  .option-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .option-label {
+    text-align: center;
+    padding: 10px 8px 12px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text);
+    border-top: 1px solid var(--border);
+    transition: all 0.2s ease;
+  }
+
+  .option-card.active .option-label {
+    color: var(--accent-hover);
+    border-top-color: rgba(212, 168, 83, 0.3);
+  }
+
+  .check-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all 0.25s ease;
+    z-index: 2;
+  }
+
+  .option-card.active .check-badge {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .check-badge svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: #fff;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* Submit area */
+  .submit-area {
+    text-align: center;
+    margin-top: 40px;
+  }
+
+  .submit-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #fff;
+    background: var(--accent);
+    border: none;
+    padding: 14px 48px;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .submit-btn:hover:not(:disabled) {
+    background: var(--accent-hover);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+
+  .submit-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .progress-text {
+    margin-top: 12px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  /* Results panel */
+  .results-panel {
+    display: none;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px;
+    margin-top: 28px;
+    box-shadow: var(--shadow-md);
+    animation: slideUp 0.4s ease;
+  }
+
+  .results-panel.show { display: block; }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .results-panel h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 1.3rem;
+    margin-bottom: 16px;
+  }
+
+  .results-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    font-family: 'DM Sans', monospace;
+    font-size: 0.95rem;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+
+  .copy-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--accent-hover);
+    background: var(--selected-bg);
+    border: 1px solid var(--accent);
+    padding: 10px 28px;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .copy-btn:hover {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .copy-btn.copied {
+    background: var(--success-bg);
+    color: var(--success-text);
+    border-color: var(--success-text);
+  }
+
+  .name-input-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  .name-input-row label {
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+  }
+
+  .name-input-row input {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    padding: 10px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--text);
+    width: 220px;
+    transition: border-color 0.2s;
+  }
+
+  .name-input-row input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  /* Responsive */
+  @media (max-width: 700px) {
+    body { padding: 24px 12px 60px; }
+    header h1 { font-size: 1.8rem; }
+    .color-group { padding: 20px 16px; }
+    .options-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .option-label { font-size: 0.85rem; padding: 8px 4px 10px; }
+    .name-input-row { flex-direction: column; gap: 6px; }
+    .name-input-row input { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Tape Color Shade Poll</h1>
+    <p>For each color below, pick the shade you prefer. When you're done, hit submit to get a copyable summary of your picks.</p>
+  </header>
+
+  <div class="name-input-row">
+    <label for="voter-name">Your name (optional):</label>
+    <input type="text" id="voter-name" placeholder="e.g. Nathan">
+  </div>
+
+  <form id="poll-form">
+
+    <!-- TEAL -->
+    <div class="color-group" data-color="Teal">
+      <div class="color-group-header">
+        <div class="color-swatch" style="background:#1a8a8a;"></div>
+        <h2>Teal</h2>
+        <span class="status">Not selected</span>
+      </div>
+      <div class="options-grid">
+        <label class="option-card">
+          <input type="radio" name="teal" value="A">
+          <div class="check-badge"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="option-img-wrap"><img src="images/Teal_Option_A.png" alt="Teal A"></div>
+          <div class="option-label">Option A</div>
+        </label>
+        <label class="option-card">
+          <input type="radio" name="teal" value="B">
+          <div class="check-badge"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="option-img-wrap"><img src="images/Teal_Option_B.png" alt="Teal B"></div>
+          <div class="option-label">Option B</div>
+        </label>
+        <label class="option-card">
+          <input type="radio" name="teal" value="C">
+          <div class="check-badge"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="option-img-wrap"><img src="images/Teal_Option_C.png" alt="Teal C"></div>
+          <div class="option-label">Option C</div>
+        </label>
+        <label class="option-card">
+          <input type="radio" name="teal" value="D">
+          <div class="check-badge"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="option-img-wrap"><img src="images/Teal_Option_D.png" alt="Teal D"></div>
+          <div class="option-label">Option D</div>
+        </label>
+      </div>
+    </div>
+
+    <!-- BEIGE -->
+    <div class="color-group" data-color="Beige">
+      <div class="color-group-header">
+        <div class="color-swatch" style="background:#c9a882;"></div>
+        <h2>Beige</h2>
+        <span class="status">Not selected</span>
+      </div>
+      <div class="options-grid">
+        <label class="option-card">
+          <input type="radio" name="beige" value="A">
+          <div class="check-badge"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="option-img-wrap"><img src="images/Beige_Option_A.png" alt="Beige A"></div>
+          <div class="option-label">Option A</div>
+        </label>
+        <label class="option-card">
+          <input type="radio" name="beige" value="B">
+          <div class="check-badge"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="option-img-wrap"><img src="images/Beige_Option_B.png" alt="Beige B"></div>
+          <div class="option-label">Option B</div>
+        </label>
+        <label class="option-card">
+          <input type="radio" name="beige" value="C">
+          <div class="check-badge"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="option-img-wrap"><img src="images/Beige_Option_C.png" alt="Beige C"></div>
+          <div class="option-label">Option C</div>
+        </label>
+        <label class="option-card">
+          <input type="radio" name="beige" value="D">
+          <div class="check-badge"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="option-img-wrap"><img src="images/Beige_Option_D.png" alt="Beige D"></div>
+          <div class="option-label">Option D</div>
+        </label>
+      </div>
+    </div>
+
+    <!-- BLUE -->
+    <div class="color-group" data-color="Blue">
+      <div class="color-group-header">
+        <div class="color-swatch" style="background:#1a3fba;"></div>
+        <h2>Blue</h2>
+        <span class="status">Not selected</span>
+      </div>
+      <div class="options-grid">
+        <label class="option-card">
+          <input type="radio" name="blue" value="A">
+          <div class="check-badge"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="option-img-wrap"><img src="images/Blue_Option_A.png" alt="Blue A"></div>
+          <div class="option-label">Option A</div>
+        </label>
+        <label class="option-card">
+          <input type="radio" name="blue" value="B">
+          <div class="check-badge"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="option-img-wrap"><img src="images/Blue_Option_B.png" alt="Blue B"></div>
+          <div class="option-label">Option B</div>
+        </label>
+        <label class="option-card">
+          <input type="radio" name="blue" value="C">
+          <div class="check-badge"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="option-img-wrap"><img src="images/Blue_Option_C.png" alt="Blue C"></div>
+          <div class="option-label">Option C</div>
+        </label>
+        <label class="option-card">
+          <input type="radio" name="blue" value="D">
+          <div class="check-badge"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="option-img-wrap"><img src="images/Blue_Option_D.png" alt="Blue D"></div>
+          <div class="option-label">Option D</div>
+        </label>
+      </div>
+    </div>
+
+    <!-- PINK -->
+    <div class="color-group" data-color="Pink">
+      <div class="color-group-header">
+        <div class="color-swatch" style="background:#d94d8f;"></div>
+        <h2>Pink</h2>
+        <span class="status">Not selected</span>
+      </div>
+      <div class="options-grid">
+        <label class="option-card">
+          <input type="radio" name="pink" value="A">
+          <div class="check-badge"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="option-img-wrap"><img src="images/Pink_Option_A.png" alt="Pink A"></div>
+          <div class="option-label">Option A</div>
+        </label>
+        <label class="option-card">
+          <input type="radio" name="pink" value="B">
+          <div class="check-badge"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="option-img-wrap"><img src="images/Pink_Option_B.png" alt="Pink B"></div>
+          <div class="option-label">Option B</div>
+        </label>
+        <label class="option-card">
+          <input type="radio" name="pink" value="C">
+          <div class="check-badge"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="option-img-wrap"><img src="images/Pink_Option_C.png" alt="Pink C"></div>
+          <div class="option-label">Option C</div>
+        </label>
+        <label class="option-card">
+          <input type="radio" name="pink" value="D">
+          <div class="check-badge"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="option-img-wrap"><img src="images/Pink_Option_D.png" alt="Pink D"></div>
+          <div class="option-label">Option D</div>
+        </label>
+      </div>
+    </div>
+
+    <div class="submit-area">
+      <button type="submit" class="submit-btn" id="submit-btn" disabled>Submit My Picks</button>
+      <div class="progress-text" id="progress-text">0 of 4 colors selected</div>
+    </div>
+  </form>
+
+  <div class="results-panel" id="results-panel">
+    <h3>Your Selections</h3>
+    <div class="results-box" id="results-box"></div>
+    <div style="text-align:center;">
+      <button class="copy-btn" id="copy-btn">Copy to Clipboard</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const form = document.getElementById('poll-form');
+  const submitBtn = document.getElementById('submit-btn');
+  const progressText = document.getElementById('progress-text');
+  const resultsPanel = document.getElementById('results-panel');
+  const resultsBox = document.getElementById('results-box');
+  const copyBtn = document.getElementById('copy-btn');
+  const colorNames = ['teal', 'beige', 'blue', 'pink'];
+
+  // Handle card selection visuals
+  document.querySelectorAll('.option-card input[type="radio"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      const group = radio.closest('.color-group');
+      group.querySelectorAll('.option-card').forEach(c => c.classList.remove('active'));
+      radio.closest('.option-card').classList.add('active');
+
+      // Update status badge
+      const status = group.querySelector('.status');
+      status.textContent = 'Option ' + radio.value;
+      status.classList.add('selected');
+
+      updateProgress();
+    });
+  });
+
+  function updateProgress() {
+    let count = 0;
+    colorNames.forEach(name => {
+      if (document.querySelector(`input[name="${name}"]:checked`)) count++;
+    });
+    progressText.textContent = `${count} of 4 colors selected`;
+    submitBtn.disabled = count < 4;
+  }
+
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const name = document.getElementById('voter-name').value.trim();
+    const timestamp = new Date().toLocaleString();
+
+    let lines = [];
+    lines.push('═══ Tape Color Shade Poll ═══');
+    if (name) lines.push(`Voter: ${name}`);
+    lines.push(`Date: ${timestamp}`);
+    lines.push('');
+
+    colorNames.forEach(color => {
+      const checked = document.querySelector(`input[name="${color}"]:checked`);
+      const label = color.charAt(0).toUpperCase() + color.slice(1);
+      lines.push(`${label}: Option ${checked.value}`);
+    });
+
+    lines.push('');
+    lines.push('═════════════════════════════');
+
+    resultsBox.textContent = lines.join('\n');
+    resultsPanel.classList.add('show');
+    resultsPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+
+  copyBtn.addEventListener('click', () => {
+    const text = resultsBox.textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      copyBtn.textContent = 'Copied!';
+      copyBtn.classList.add('copied');
+      setTimeout(() => {
+        copyBtn.textContent = 'Copy to Clipboard';
+        copyBtn.classList.remove('copied');
+      }, 2500);
+    }).catch(() => {
+      // Fallback
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      copyBtn.textContent = 'Copied!';
+      copyBtn.classList.add('copied');
+      setTimeout(() => {
+        copyBtn.textContent = 'Copy to Clipboard';
+        copyBtn.classList.remove('copied');
+      }, 2500);
+    });
+  });
+</script>
+
+</body>
+</html>
